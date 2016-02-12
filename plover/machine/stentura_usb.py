@@ -103,7 +103,7 @@ class Stenotype(StenotypeBase):
                             continue
                         except IOError as e:
                             # 1/12 chance says we threw an exception.
-                            if i is 12:
+                            if i is 12: # Last try :(
                                 raise
                 else: # Legacy loop
                     for i in DEVICE_IDS:
@@ -136,11 +136,12 @@ class Stenotype(StenotypeBase):
                 self.write_packet[14] = ((self.machine_offset >> 16) & 255)
                 self.write_packet[15] = ((self.machine_offset >> 24) & 255)
 
+                self._machine.write(self.write_packet)
                 data = self._machine.read(40)
-                if len(data) <= 32: continue
+                if len(data) <= 32: continue # Is always 40 ?!
                 self.machine_offset += (len(data) - 32) # Always 8 ?!
                 # We only care about 33, 34, 35, 36.
-                handler.update(self.write_packet[33, 37])
+                handler.update(data[33, 37])
 
     def stop_capture(self):
         """Stop listening for output from the stenotype machine."""
