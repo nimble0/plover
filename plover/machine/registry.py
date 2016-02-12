@@ -7,6 +7,7 @@ from plover.machine.geminipr import Stenotype as geminipr
 from plover.machine.txbolt import Stenotype as txbolt
 from plover.machine.sidewinder import Stenotype as sidewinder
 from plover.machine.stentura import Stenotype as stentura
+from plover.machine.stentura_usb import Stenotype as stentura_usb
 from plover.machine.passport import Stenotype as passport
 from plover import log
 
@@ -15,7 +16,6 @@ try:
 except Exception as e:
     log.info('Unable to use Treal on this machine: %s', str(e))
     treal = None
-
 
 class NoSuchMachineException(Exception):
     def __init__(self, id):
@@ -54,9 +54,9 @@ machine_registry = Registry()
 machine_registry.register('NKRO Keyboard', sidewinder)
 machine_registry.register('Gemini PR', geminipr)
 machine_registry.register('TX Bolt', txbolt)
-machine_registry.register('Stentura', stentura)
+machine_registry.register('Stentura Serial', stentura)
+machine_registry.register('Stentura USB', stentura_usb)
 machine_registry.register('Passport', passport)
 if treal:
     machine_registry.register('Treal', treal)
-
 machine_registry.add_alias('Microsoft Sidewinder X4', 'NKRO Keyboard')

@@ -32,6 +32,9 @@ nosetests.xml
 #Mr Developer
 .mr.developer.cfg
 
+# PyCharm
+.idea
+
 # mac files
 .DS_store
 
