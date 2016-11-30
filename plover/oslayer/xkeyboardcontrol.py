@@ -241,9 +241,7 @@ class KeyboardCapture(XEventLoop):
             return
         # ...or pass it on to a callback method.
         if event.evtype == xinput.KeyPress:
-            # Ignore event if a modifier is set.
-            if modifiers == 0:
-                self.key_down(key)
+            self.key_down(key)
         elif event.evtype == xinput.KeyRelease:
             self.key_up(key)
 
