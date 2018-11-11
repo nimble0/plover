@@ -304,7 +304,7 @@ class Translator:
             return
         t = (
             self._find_translation_helper(stroke) or
-            self._find_translation_helper(stroke, system.SUFFIX_KEYS) or
+            self._find_translation_helper(stroke, system.SUFFIX_STROKES) or
             Translation([stroke], mapping)
         )
         self.translate_translation(t)
@@ -363,17 +363,14 @@ class Translator:
         result = self._dictionary.lookup(dict_key)
         if result is not None:
             return result
-        for key in suffixes:
-            if key in strokes[-1].steno_keys:
-                dict_key = (Stroke([key]).rtfcre,)
-                suffix_mapping = self._dictionary.lookup(dict_key)
+        for suffix in suffixes:
+            suffix_stroke = Stroke(suffix)
+            if suffix_stroke in strokes[-1]:
+                suffix_mapping = self._dictionary.lookup((suffix_stroke.rtfcre,))
                 if suffix_mapping is None:
                     continue
-                keys = strokes[-1].steno_keys[:]
-                keys.remove(key)
-                copy = strokes[:]
-                copy[-1] = Stroke(keys)
-                dict_key = tuple(s.rtfcre for s in copy)
+                lookup_strokes = strokes[:-1] + [strokes[-1].remove(suffix_stroke)]
+                dict_key = tuple(s.rtfcre for s in lookup_strokes)
                 main_mapping = self._dictionary.lookup(dict_key)
                 if main_mapping is None:
                     continue

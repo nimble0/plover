@@ -10,7 +10,7 @@ KEYS = (
 
 IMPLICIT_HYPHEN_KEYS = ('A-', 'O-', '5-', '0-', '-E', '-U', '*')
 
-SUFFIX_KEYS = ('-Z', '-D', '-S', '-G')
+SUFFIX_STROKES = (('-Z',), ('-D',), ('-S',), ('-G',))
 
 NUMBER_KEY = '#'
 
