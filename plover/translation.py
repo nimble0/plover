@@ -377,9 +377,9 @@ class Translator:
             main_mapping = self._dictionary.lookup(dict_key)
             if main_mapping is None:
                 continue
-            prefix_mapping = self._dictionary.lookup((prefix.rtfcre,)) \
+            prefix_mapping = self._dictionary.lookup(('^' + prefix.rtfcre,)) \
                 if len(prefix.steno_keys) > 0 else ''
-            suffix_mapping = self._dictionary.lookup((suffix.rtfcre,)) \
+            suffix_mapping = self._dictionary.lookup(('^' + suffix.rtfcre,)) \
                 if len(suffix.steno_keys) > 0 else ''
             if prefix_mapping is None or suffix_mapping is None:
                 continue
