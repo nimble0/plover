@@ -32,16 +32,17 @@ def _key_order(keys, numbers):
             key_order[number_key] = order
     return key_order
 
-def _suffix_strokes(strokes):
+def _affix_strokes(strokes):
     assert isinstance(strokes, collections.Sequence)
-    return strokes
+    return tuple(strokes)
 
 _EXPORTS = {
     'KEYS'                     : lambda mod: mod.KEYS,
     'KEY_ORDER'                : lambda mod: _key_order(mod.KEYS, mod.NUMBERS),
     'NUMBER_KEY'               : lambda mod: mod.NUMBER_KEY,
     'NUMBERS'                  : lambda mod: dict(mod.NUMBERS),
-    'SUFFIX_STROKES'           : lambda mod: _suffix_strokes(mod.SUFFIX_STROKES),
+    'PREFIX_STROKES'           : lambda mod: _affix_strokes(mod.PREFIX_STROKES),
+    'SUFFIX_STROKES'           : lambda mod: _affix_strokes(mod.SUFFIX_STROKES),
     'UNDO_STROKE_STENO'        : lambda mod: mod.UNDO_STROKE_STENO,
     'IMPLICIT_HYPHEN_KEYS'     : lambda mod: set(mod.IMPLICIT_HYPHEN_KEYS),
     'IMPLICIT_HYPHENS'         : lambda mod: {l.replace('-', '')
