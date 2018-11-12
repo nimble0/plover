@@ -17,6 +17,7 @@ emits one or more Translation objects based on a greedy conversion algorithm.
 """
 
 from collections import namedtuple
+from itertools import product
 import re
 
 from plover.steno import Stroke
@@ -103,7 +104,7 @@ class Translation:
 
     """
 
-    def __init__(self, outline, translation):
+    def __init__(self, outline, translation, has_prefix=False):
         """Create a translation by looking up strokes in a dictionary.
 
         Arguments:
@@ -119,6 +120,7 @@ class Translation:
         self.replaced = []
         self.formatting = []
         self.is_retrospective_command = False
+        self.has_prefix = has_prefix
 
     def __eq__(self, other):
         return self.rtfcre == other.rtfcre and self.english == other.english
@@ -297,14 +299,14 @@ class Translator:
         stroke -- The Stroke object to process.
 
         """
-        mapping = self.lookup([stroke])
+        mapping = self._dictionary.lookup((stroke.rtfcre,))
         macro = _mapping_to_macro(mapping, stroke)
         if macro is not None:
             self.translate_macro(macro)
             return
         t = (
-            self._find_translation_helper(stroke) or
-            self._find_translation_helper(stroke, system.SUFFIX_KEYS) or
+            self._find_translation_helper(stroke, system.PREFIX_STROKES, ()) or
+            self._find_translation_helper(stroke, system.PREFIX_STROKES, system.SUFFIX_STROKES) or
             Translation([stroke], mapping)
         )
         self.translate_translation(t)
@@ -333,7 +335,7 @@ class Translator:
         self._state.translations.extend(translations)
         self._to_do += len(translations)
 
-    def _find_translation_helper(self, stroke, suffixes=()):
+    def _find_translation_helper(self, stroke, prefix_strokes, suffix_strokes):
         # Figure out how much of the translation buffer can be involved in this
         # stroke and build the stroke list for translation.
         num_strokes = 1
@@ -352,33 +354,42 @@ class Translator:
             replaced = translations[i:]
             strokes = [s for t in replaced for s in t.strokes]
             strokes.append(stroke)
-            mapping = self.lookup(strokes, suffixes)
+            if len(replaced) == 0 or replaced[0].has_prefix:
+                mapping, has_prefix = self.lookup(strokes, prefix_strokes, suffix_strokes)
+            else:
+                mapping, has_prefix = self.lookup(strokes, (), suffix_strokes)
             if mapping is not None:
-                t = Translation(strokes, mapping)
+                t = Translation(strokes, mapping, has_prefix)
                 t.replaced = replaced
                 return t
 
-    def lookup(self, strokes, suffixes=()):
-        dict_key = tuple(s.rtfcre for s in strokes)
-        result = self._dictionary.lookup(dict_key)
-        if result is not None:
-            return result
-        for key in suffixes:
-            if key in strokes[-1].steno_keys:
-                dict_key = (Stroke([key]).rtfcre,)
-                suffix_mapping = self._dictionary.lookup(dict_key)
-                if suffix_mapping is None:
-                    continue
-                keys = strokes[-1].steno_keys[:]
-                keys.remove(key)
-                copy = strokes[:]
-                copy[-1] = Stroke(keys)
-                dict_key = tuple(s.rtfcre for s in copy)
-                main_mapping = self._dictionary.lookup(dict_key)
-                if main_mapping is None:
-                    continue
-                return main_mapping + ' ' + suffix_mapping
-        return None
+    def lookup(self, strokes, prefix_strokes, suffix_strokes):
+        affixes = product(((),) + prefix_strokes, ((),) + suffix_strokes)
+        for prefix_suffix in affixes:
+            prefix = Stroke(prefix_suffix[0])
+            suffix = Stroke(prefix_suffix[1])
+            if not (prefix in strokes[0] and suffix in strokes[-1]):
+                continue
+            lookup_strokes = strokes[:]
+            lookup_strokes[0] = lookup_strokes[0].remove(prefix)
+            lookup_strokes[-1] = lookup_strokes[-1].remove(suffix)
+            dict_key = tuple(s.rtfcre for s in lookup_strokes)
+            main_mapping = self._dictionary.lookup(dict_key)
+            if main_mapping is None:
+                continue
+            prefix_mapping = self._dictionary.lookup(('^' + prefix.rtfcre,)) \
+                if len(prefix.steno_keys) > 0 else ''
+            suffix_mapping = self._dictionary.lookup(('^' + suffix.rtfcre,)) \
+                if len(suffix.steno_keys) > 0 else ''
+            if prefix_mapping is None or suffix_mapping is None:
+                continue
+            mapping = (prefix_mapping
+                    + ' ' + main_mapping
+                    + ' ' + suffix_mapping
+                ).strip()
+            return mapping, len(prefix.steno_keys) > 0
+
+        return None, False
 
 
 class _State:
