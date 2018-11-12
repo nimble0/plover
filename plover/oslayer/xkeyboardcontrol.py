@@ -137,6 +137,17 @@ KEYCODE_TO_KEY = {
     23 : "Tab",
     111: "Up",
     65 : "space",
+    # Modifiers
+    37 : "Caps_Lock",
+    50 : "Shift_L",
+    62 : "Shift_R",
+    66 : "Control_L",
+    105: "Control_R",
+    64 : "Alt_L",
+    108: "Alt_R",
+    133: "Super_L",
+    134: "Super_R",
+    135: "Menu",
 }
 
 KEY_TO_KEYCODE = dict(zip(KEYCODE_TO_KEY.values(), KEYCODE_TO_KEY.keys()))
@@ -241,9 +252,7 @@ class KeyboardCapture(XEventLoop):
             return
         # ...or pass it on to a callback method.
         if event.evtype == xinput.KeyPress:
-            # Ignore event if a modifier is set.
-            if modifiers == 0:
-                self.key_down(key)
+            self.key_down(key)
         elif event.evtype == xinput.KeyRelease:
             self.key_up(key)
 
