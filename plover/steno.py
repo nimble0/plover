@@ -23,14 +23,6 @@ _IMPLICIT_NUMBER_RX = re.compile('(^|[1-4])([6-9])')
 
 def normalize_stroke(stroke):
     letters = set(stroke)
-    if letters & _NUMBERS:
-        if system.NUMBER_KEY in letters:
-            stroke = stroke.replace(system.NUMBER_KEY, '')
-        # Insert dash when dealing with 'explicit' numbers
-        m = _IMPLICIT_NUMBER_RX.search(stroke)
-        if m is not None:
-            start = m.start(2)
-            return stroke[:start] + '-' + stroke[start:]
     if '-' in letters:
         if stroke.endswith('-'):
             stroke = stroke[:-1]
@@ -51,7 +43,7 @@ def sort_steno_strokes(strokes_list):
     return sorted(strokes_list, key=lambda x: (len(x), sum(map(len, x))))
 
 
-class Stroke:
+class Stroke(object):
     """A standardized data model for stenotype machine strokes.
 
     This class standardizes the representation of a stenotype chord. A stenotype
@@ -118,3 +110,14 @@ class Stroke:
     def __repr__(self):
         return str(self)
 
+    def add(self, stroke):
+        return Stroke(self.steno_keys + stroke.steno_keys)
+
+    def remove(self, stroke):
+        return Stroke([key for key in self.steno_keys if key not in stroke.steno_keys])
+
+    def __contains__(self, stroke):
+        contains = True
+        for key in stroke.steno_keys:
+            contains &= key in self.steno_keys
+        return contains
