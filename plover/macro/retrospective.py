@@ -51,7 +51,7 @@ def insert_space(translator, stroke, cmdline):
                for t in replaced.replaced]
     if english:
         english.append(
-            translator.lookup([lookup_stroke], system.SUFFIX_KEYS)
+            translator.lookup([lookup_stroke], system.PREFIX_STROKES, system.SUFFIX_STROKES)[0]
             or lookup_stroke.rtfcre
         )
         t = Translation([stroke], ' '.join(english))
